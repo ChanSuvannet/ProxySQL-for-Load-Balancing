@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  mysql-primary:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    ports:
+      - "3307:3306"
+    networks:
+      - mysql-network
+    command: --server-id=1 --log-bin=mysql-bin --binlog-do-db=mydatabase
+
+  mysql-replica:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+    ports:
+      - "3308:3306"
+    networks:
+      - mysql-network
+    command: --server-id=2 --log-bin=mysql-bin --binlog-do-db=mydatabase --relay-log=relay-bin
+
+  proxysql:
+    image: proxysql/proxysql
+    ports:
+      - "6032:6032"
+      - "6033:6033"
+    networks:
+      - mysql-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+
+networks:
+  mysql-network:
+    driver: bridge
